@@ -4,6 +4,7 @@
 Plugin for py.test for doing vulture tests
 """
 import os
+from pathlib import Path
 
 from setuptools import (
     find_packages,
@@ -43,8 +44,17 @@ ENTRY_POINTS = {
 
 setup(
     name='pytest-vulture',
-    version='2.0.0',
+    version='2.0.1',
     include_package_data=True,
+    author='Abadie Moran',
+    author_email='moran.abadie@gatewatcher.com',
+    maintainer='Abadie Moran',
+    maintainer_email='moran.abadie@gatewatcher.com',
+    license='MIT',
+    url='https://github.com/Gatewatcher/pytest-vulture',
+    description='A pytest plugin to checks dead code with vulture',
+    long_description=(Path(__file__).parent / "README.rst").read_text(encoding="utf-8"),
+    long_description_content_type="text/x-rst",
     package_dir={
         '': 'src',
     },

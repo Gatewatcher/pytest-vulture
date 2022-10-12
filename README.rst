@@ -1,5 +1,5 @@
 pytest vulture
--------------
+--------------
 
 Run vulture (https://pypi.org/project/vulture/) with pytest to find dead code.
 
@@ -18,7 +18,7 @@ would be the most simple usage and would run vulture for all error messages.
 This would use the vulture with the /test/vulture.ini config path
 
 Ignoring vulture messages in source code
-============
+========================================
 
 - ignoring lines :
 
@@ -93,7 +93,7 @@ If you encounter any problems, please file an issue along with a detailed descri
 Releases
 ========
 
-2.0.0
+2.0.1
 ~~~~~~
 
 - Uses vulture with pytest (tested with python 3.7 3.8 and 3.9, with vulture==2.3 and pytest 7.x)
