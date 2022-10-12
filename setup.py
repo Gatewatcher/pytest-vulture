@@ -44,7 +44,7 @@ ENTRY_POINTS = {
 
 setup(
     name='pytest-vulture',
-    version='2.0.1',
+    version='2.0.2',
     include_package_data=True,
     author='Abadie Moran',
     author_email='moran.abadie@gatewatcher.com',

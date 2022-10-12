@@ -64,6 +64,9 @@ class VultureItem(pytest.Item):
             return excinfo.value.message
         return super().repr_failure(excinfo, *args, **kwargs)
 
+    def reportinfo(self):
+        """Generate the vulture test report"""
+        return self.path, None, f"[vulture] {self.path}"
 
 class VulturePinningFile(pytest.File):
     """File that is tested by pytest"""
