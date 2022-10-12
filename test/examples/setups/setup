@@ -1,0 +1,47 @@
+"""
+    Setup the app
+"""
+from setuptools import setup
+
+
+install_requires = [
+    'vulture>=1.0',
+]
+
+test_requires = [
+    'pytest >= 3.2.2',
+    'pytest-cov >= 2.5.1',
+    'pytest-codestyle',
+    'pytest-runner',
+    'pytest-pylint >= 0.7.1',
+    'pytest-isort >= 0.3.1',
+    'pytest-mccabe >= 0.1',
+    'pytest-mypy >= 0.4',
+    # 'pytest-mock >= 1.6.3',
+    # 'pytest-timeout >= 1.2.0',
+]
+
+dev_requires = [
+]
+
+setup(
+    version='0.0.2',
+    include_package_data=True,
+    install_requires=install_requires,
+    tests_require=test_requires,
+    extras_require={
+        'test': test_requires,
+        'dev': test_requires + dev_requires,
+    },
+    entry_points={
+        'console_scripts': (
+            'test=test.main:main',
+            'test_1=test.main:main_2',
+            'test_3',
+        ),
+        "pytest11": ["test = test.pytest.test"]
+
+    },
+    classifiers=["Framework :: Pytest"],
+
+)

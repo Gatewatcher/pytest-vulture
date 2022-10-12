@@ -1,0 +1,65 @@
+"""tests the configuration system"""
+# pylint: disable=redefined-outer-name,protected-access,too-many-arguments
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
+
+from pytest_vulture.vulture.manager import VultureManager
+
+
+@pytest.mark.parametrize(
+    "folder_path,results",
+    [
+        ("vulture_tests/comments", 0),
+        ("vulture_tests/bug_18_2020", 0),
+        ("vulture_tests/easy", 1),
+    ]
+)
+def test_with_comments(examples_path, folder_path, results):
+    """Tests the call function with comments to see if the vulture ignore disables the outputs"""
+    ini = Mock()
+    ini.package_configuration.setup_path = Path("not_found.py")
+    ini.vulture_configuration.exclude = []
+    ini.vulture_configuration.ignore_names = []
+    ini.vulture_configuration.ignore_decorators = []
+    ini.vulture_configuration.ignore = []
+    ini.vulture_configuration.ignore_types = []
+    manager = VultureManager(examples_path / folder_path, ini)
+
+    manager.call()
+
+    assert len(manager._results) == results
+
+
+@pytest.mark.parametrize(
+    "exclude,ignore,ignore_names,ignore_decorators,ignore_types,results,answers",
+    [
+        ([], [], [], [], [], 1, ["line 7 :  unused property 'main' (60% confidence)",
+                                 "line 8 :  unused property 'main' (60% confidence)"]),
+        ([".py"], [], [], [], [], 0, []),
+        (["main.py"], [], [], [], [], 1,  ["line 6 :  unused function 'other' (60% confidence)"]),
+        ([], ["main.py"], [], [], [], 0, []),
+        ([], ["easy/main.py"], [], [], [], 1, ["line 7 :  unused property 'main' (60% confidence)",
+                                               "line 8 :  unused property 'main' (60% confidence)"]),
+        ([], [], ["main"], [], [], 0, []),
+        ([], [], [], ["@property"], [], 0, []),
+        ([], [], [], [], ["property"], 0, []),
+    ]
+)
+def test_call(examples_path, exclude, ignore, ignore_names, ignore_decorators, ignore_types, results, answers):
+    """Tests the call option with vulture with the easy example"""
+    ini = Mock()
+    ini.package_configuration.setup_path = Path("not_found.py")
+    ini.vulture_configuration.exclude = exclude
+    ini.vulture_configuration.ignore_names = ignore_names
+    ini.vulture_configuration.ignore_decorators = ignore_decorators
+    ini.vulture_configuration.ignore = ignore
+    ini.vulture_configuration.ignore_types = ignore_types
+    manager = VultureManager(examples_path / "vulture_tests/easy", ini)
+
+    manager.call()
+
+    assert len(manager._results) == results
+    if results:
+        assert manager._results[0].message in answers
