@@ -93,7 +93,7 @@ If you encounter any problems, please file an issue along with a detailed descri
 Releases
 ========
 
-2.0.1
+2.0.2
 ~~~~~~
 
 - Uses vulture with pytest (tested with python 3.7 3.8 and 3.9, with vulture==2.3 and pytest 7.x)
