@@ -33,21 +33,20 @@ def test_with_comments(examples_path, folder_path, results):
 
 
 @pytest.mark.parametrize(
-    "exclude,ignore,ignore_names,ignore_decorators,ignore_types,results,answers",
+    "exclude,ignore,ignore_names,ignore_decorators,ignore_types,results,answer",
     [
-        ([], [], [], [], [], 1, ["line 7 :  unused property 'main' (60% confidence)",
-                                 "line 8 :  unused property 'main' (60% confidence)"]),
+        ([], [], [], [], [], 1, "unused property 'main'"),
         ([".py"], [], [], [], [], 0, []),
-        (["main.py"], [], [], [], [], 1,  ["line 6 :  unused function 'other' (60% confidence)"]),
+        (["main.py"], [], [], [], [], 1,  "unused function 'other'"),
         ([], ["main.py"], [], [], [], 0, []),
-        ([], ["easy/main.py"], [], [], [], 1, ["line 7 :  unused property 'main' (60% confidence)",
-                                               "line 8 :  unused property 'main' (60% confidence)"]),
+        ([], ["*.py"], [], [], [], 0, []),
+        ([], ["easy/main.py"], [], [], [], 1, "unused property 'main'"),
         ([], [], ["main"], [], [], 0, []),
         ([], [], [], ["@property"], [], 0, []),
         ([], [], [], [], ["property"], 0, []),
     ]
 )
-def test_call(examples_path, exclude, ignore, ignore_names, ignore_decorators, ignore_types, results, answers):
+def test_call(examples_path, exclude, ignore, ignore_names, ignore_decorators, ignore_types, results, answer):
     """Tests the call option with vulture with the easy example"""
     ini = Mock()
     ini.package_configuration.setup_path = Path("not_found.py")
@@ -62,4 +61,4 @@ def test_call(examples_path, exclude, ignore, ignore_names, ignore_decorators, i
 
     assert len(manager._results) == results
     if results:
-        assert manager._results[0].message in answers
+        assert manager._results[0].message == answer
