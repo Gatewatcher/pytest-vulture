@@ -9,9 +9,10 @@ from typing import (
     Tuple,
 )
 
+from vulture.core import Item
+
 from pytest_vulture import VultureError
 from pytest_vulture.conf.reader import IniReader
-from pytest_vulture.vulture.output_line import VultureOutputLine
 
 
 class EntryPointFileError(VultureError):
@@ -26,6 +27,7 @@ class SetupManager:
     """The setup.py parser"""
     _entry_points: List[str]
     _config: IniReader
+    _UNUSED_FUNCTION_MESSAGE = "unused function"
 
     def __init__(self, config: IniReader):
         self._entry_points = []
@@ -36,7 +38,7 @@ class SetupManager:
             return
         self.__generate_entry_points(content)
 
-    def is_entry_point(self, vulture: VultureOutputLine) -> bool:
+    def is_entry_point(self, vulture: Item) -> bool:
         """Check if the vulture output is an entry point
         Examples::
             >>> config_file = Path("/tmp/test.ini")
@@ -49,15 +51,30 @@ class SetupManager:
             >>> Path("/tmp/test.py").write_text("def main():pass")
             15
             >>> finder = SetupManager(ini)
-            >>> finder.is_entry_point(VultureOutputLine("toto.py:1: unused function 'test' (60% confidence)"))
+            >>> finder.is_entry_point(Item("test", "function", Path("toto.py"), 1, 1, "unused function 'test'", 50))
             False
-            >>> finder.is_entry_point(VultureOutputLine("test.py:1: unused function 'main' (60% confidence)"))
+            >>> finder.is_entry_point(Item("test", "function", Path("test.py"), 1, 1, "unused function 'main'", 50))
             True
         """
         for entry_point in self._entry_points:
-            if entry_point.replace(".__init__", "") == vulture.python_path.replace(".__init__", ""):
+            if entry_point.replace(".__init__", "") == self._python_path(vulture).replace(".__init__", ""):
                 return True
         return False
+
+    @classmethod
+    def _python_path(cls, vulture: Item):
+        try:
+            relative_path = vulture.filename.relative_to(Path("").absolute())
+        except ValueError:
+            relative_path = vulture.filename
+
+        python_path = relative_path.as_posix().replace("/", ".").replace(".py", "")
+        dots_message = f"{cls._UNUSED_FUNCTION_MESSAGE} '"
+        find = re.findall(f"(?={dots_message}).*(?<=')", vulture.message)
+        if find:
+            function_name = find[0].replace(dots_message, "")
+            python_path += ":" + function_name[:-1]
+        return python_path
 
     def __generate_entry_points(self, content: str):
         """Parse the setup.pu file to get the entry points"""

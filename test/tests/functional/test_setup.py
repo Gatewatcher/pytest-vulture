@@ -1,38 +1,39 @@
 """tests the setup parser system to find entry points"""
-# pylint: disable=redefined-outer-name,use-implicit-booleaness-not-comparison
+from pathlib import Path
+# pylint: disable=redefined-outer-name,use-implicit-booleaness-not-comparison,too-many-arguments
 from unittest.mock import Mock
 
 import pytest
+
+from vulture.core import Item
 
 from pytest_vulture.setup_manager import (
     EntryPointFileError,
     EntryPointFunctionError,
     SetupManager,
 )
-from pytest_vulture.vulture.output_line import VultureOutputLine
 
 
 @pytest.mark.parametrize(
-    "check_entry_points, setup,line,is_entry_point",
+    "check_entry_points,setup,message,file,first_lineno,is_entry_point",
     [
-        (False, "setup_with_entry_point", "src/test/main.py:8: unused function 'main' (60% confidence)", True),
-        (False, "setup_with_entry_point", "src/test/main.py:8: unused function 'test' (60% confidence)", False),
-        (False, "setup_with_entry_point", "src/swagger_parser/conf/base.py:8: unused property 'main' (60% confidence)",
-         False),
-        (True, "setup", "test/main.py:7: unused function 'main' (60% confidence)", True),
-        (True, "setup", "src/test/main.py:7: unused function 'main' (60% confidence)", False),
-        (False, "setup_broken", "main.py:7: unused function 'main' (60% confidence)", False),
-        (False, "setup_no_entry_point", "main.py:7: unused function 'main' (60% confidence)", False),
-        (False, "setup_not_found", "main.py:7: unused function 'main' (60% confidence)", False),
+        (False, "setup_with_entry_point", "unused function 'main'", "src/test/main.py", 8, True),
+        (False, "setup_with_entry_point", "unused function 'test'", "src/test/main.py", 8, False),
+        (False, "setup_with_entry_point", "unused property 'main'", "src/swagger_parser/conf/base.py", 8, False),
+        (True, "setup", "unused function 'main'", "test/main.py", 7, True),
+        (True, "setup", "unused function 'main'", "src/ttest/main.py", 7, False),
+        (False, "setup_broken", "unused function 'main'", "main.py", 7, False),
+        (False, "setup_no_entry_point", "unused function 'main'", "main.py", 7, False),
+        (False, "setup_not_found", "unused function 'main'", "main.py", 7, False),
     ]
 )
-def test_is_entry_point(check_entry_points, examples_path, setup, line, is_entry_point):
+def test_is_entry_point(check_entry_points, examples_path, setup, message, file, first_lineno, is_entry_point):
     """tests the entry point checking system"""
     conf = Mock()
     conf.package_configuration.check_entry_points = check_entry_points
     conf.package_configuration.setup_path = examples_path / "setups" / setup
     setup_entry_point = SetupManager(conf)
-    vulture = VultureOutputLine(line)
+    vulture = Item("test", "function", Path(file), first_lineno, first_lineno, message, 50)
 
     assert setup_entry_point.is_entry_point(vulture) == is_entry_point
 
