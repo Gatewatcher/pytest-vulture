@@ -23,12 +23,17 @@ class PackageConfiguration(Configuration):
         True
     """
     _setup_path: Path = Path("setup.py")
+    _source_path: Path = Path("")
     _check_entry_points: bool = True
     _NAME = "package"
 
     @property
     def setup_path(self) -> Path:
         return self._setup_path
+
+    @property
+    def source_path(self) -> Path:
+        return self._source_path
 
     @property
     def check_entry_points(self) -> bool:
@@ -38,6 +43,8 @@ class PackageConfiguration(Configuration):
         """Read the ini file"""
         with suppress(KeyError):
             self._setup_path = Path(config[self._NAME]['setup_path'])
+        with suppress(KeyError):
+            self._source_path = Path(config[self._NAME]['source_path'])
         with suppress(KeyError):
             self._check_entry_points = self._to_bool(
                 config[self._NAME]['check_entry_points']

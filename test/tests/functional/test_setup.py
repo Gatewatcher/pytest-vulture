@@ -32,6 +32,7 @@ def test_is_entry_point(check_entry_points, examples_path, setup, message, file,
     conf = Mock()
     conf.package_configuration.check_entry_points = check_entry_points
     conf.package_configuration.setup_path = examples_path / "setups" / setup
+    conf.package_configuration.source_path = Path("")
     setup_entry_point = SetupManager(conf)
     vulture = Item("test", "function", Path(file), first_lineno, first_lineno, message, 50)
 
@@ -49,6 +50,7 @@ def test_errors(examples_path, path, error):
     conf = Mock()
     conf.package_configuration.check_entry_points = True
     not_found_path = examples_path / "setups" / path
+    conf.package_configuration.source_path = Path("")
     conf.package_configuration.setup_path = not_found_path
 
     with pytest.raises(error):
