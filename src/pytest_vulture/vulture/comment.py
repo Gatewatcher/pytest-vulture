@@ -77,7 +77,7 @@ class CommentFinder:
         self._path = path
         self._ignored_lines = []
         try:
-            self._content = self._path.read_text(encoding="utf-8")
+            self._content = self._path.read_text(encoding="utf-8-sig")
             self._tree = ast.parse(self._content)
             content_split = self._content.split("\n")
             index_line = 0
