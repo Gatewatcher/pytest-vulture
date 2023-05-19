@@ -1,6 +1,7 @@
 """tests the vulture line parsing"""
 #  pylint: disable=protected-access
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -16,6 +17,8 @@ from pytest_vulture.setup_manager import SetupManager
         (Item("test", "function", Path("src/tutu.py"), 15, 15, "unused function 'tata'", 60), "src.tutu:tata"),
     ]
 )
-def test_python_path(vulture_message, path):
-
-    assert SetupManager._python_path(vulture_message) == path
+def test_python_path(vulture_message, path, tmp_path):
+    mock = Mock()
+    mock.package_configuration.source_path = Path("")
+    mock.package_configuration.setup_path = tmp_path
+    assert SetupManager(mock)._python_path(vulture_message) == path

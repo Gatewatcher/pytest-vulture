@@ -28,15 +28,16 @@ class SetupManager:
     _entry_points: List[str]
     _config: IniReader
     _UNUSED_FUNCTION_MESSAGE = "unused function"
+    _PY_PROJECT = "[project.scripts]"
 
     def __init__(self, config: IniReader):
         self._entry_points = []
         self._config = config
         try:
             content = self._config.package_configuration.setup_path.read_text("utf-8").replace("\n", "")
-        except (FileNotFoundError, UnicodeDecodeError):
+        except (OSError, ValueError):
             return
-        self.__generate_entry_points(content)
+        self._generate_entry_points(content)
 
     def is_entry_point(self, vulture: Item) -> bool:
         """Check if the vulture output is an entry point
@@ -61,23 +62,33 @@ class SetupManager:
                 return True
         return False
 
-    @classmethod
-    def _python_path(cls, vulture: Item):
+    def _python_path(self, vulture: Item):
         try:
-            relative_path = vulture.filename.relative_to(Path("").absolute())
+            relative_path = vulture.filename.relative_to(self._get_dir_path().absolute())
         except ValueError:
             relative_path = vulture.filename
 
         python_path = relative_path.as_posix().replace("/", ".").replace(".py", "")
-        dots_message = f"{cls._UNUSED_FUNCTION_MESSAGE} '"
+        dots_message = f"{self._UNUSED_FUNCTION_MESSAGE} '"
         find = re.findall(f"(?={dots_message}).*(?<=')", vulture.message)
         if find:
             function_name = find[0].replace(dots_message, "")
             python_path += ":" + function_name[:-1]
         return python_path
 
-    def __generate_entry_points(self, content: str):
+    def _find_py_project_toml(self, content: str):
+        """We do not want to add a toml dependency for now."""
+        entry_points  = content.split(self._PY_PROJECT, 1)[1].split("[", 1)[0].split("\n")
+        entry_points = [entry_point for entry_point in entry_points if  entry_point]
+        for entry_point in entry_points:
+            self.__parse_entry_point_line(entry_point.replace(" ", "").replace('"', ""), [])
+        return ""
+
+    def _generate_entry_points(self, content: str):
         """Parse the setup.pu file to get the entry points"""
+        if self._PY_PROJECT in content:
+            self._find_py_project_toml(content)
+            return
         root_paths = self.__generate_root_paths(content)
         entry_points = {}
         find = re.findall("(?=entry_points={).*(?<=})", content.replace("\n", ""))
@@ -109,6 +120,11 @@ class SetupManager:
                     self._entry_points.append(value)
         self.__check_entry_points()
 
+    def _get_dir_path(self) -> Path:
+        source_path = self._config.package_configuration.source_path
+        dir_path = self._config.package_configuration.setup_path.absolute().parent
+        return dir_path / source_path
+
     def __check_entry_points(self):
         """Checks if the entry points exists"""
         if not self._config.package_configuration.check_entry_points:
@@ -120,7 +136,7 @@ class SetupManager:
                 path_dots = split_points[0]
             except IndexError:
                 continue
-            dir_path = self._config.package_configuration.setup_path.absolute().parent
+            dir_path = self._get_dir_path()
             new_path = Path(path_dots.replace(".", "/"))
             if (dir_path / new_path).is_dir():  # pragma: no cover
                 path = (dir_path / new_path / "__init__.py").absolute()
