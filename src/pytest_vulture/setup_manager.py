@@ -34,7 +34,7 @@ class SetupManager:
         self._entry_points = []
         self._config = config
         try:
-            content = self._config.package_configuration.setup_path.read_text("utf-8").replace("\n", "")
+            content = self._config.package_configuration.setup_path.read_text("utf-8")
         except (OSError, ValueError):
             return
         self._generate_entry_points(content)
