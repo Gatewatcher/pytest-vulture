@@ -1,0 +1,53 @@
+lint.select = ["ALL"]
+lint.unfixable = [
+    "T20", # flake8-print, would remove prints
+    "RUF001", "RUF002", "RUF003", # ambiguous-unicode-character-string, would replace characters unexpectedly
+]
+target-version = "py37"
+
+lint.ignore = [
+    "D301",
+    "D400",
+    "D105",
+    "D102",
+    "ANN002",
+    "ANN003",
+    "FA100",
+    "S603", # check for execution of untrusted input
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
+    "D205", # 1 blank line required between summary line and description
+    "FBT002", # boolean default value in function definition
+    "TRY300", #  Consider moving this statement to an `else` block
+    "COM812", # format conflits
+    "ISC001", # format conflits
+    "D107", # docstring in init
+]
+extend-exclude = [
+    "**/.tox/",
+    "**/.idea/",
+    "test/examples"
+]
+line-length = 120
+
+[lint.per-file-ignores]
+"**/test/*" = [
+    "S101", # Use of assert detected.
+    "S106", # Possible hardcoded password.
+    "B011", # Do not call assert False since python -O removes these calls.
+    "ARG001", # Unused function argument (mostly fixtures)
+    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+    "ANN", # flake8-annotations
+    "PLR0913", # Too many arguments to function call
+    "SLF001", # Private member accessed
+    "D103", # docstring
+]
+
+[lint.pydocstyle]
+convention = "pep257"
+
+[lint.mccabe]
+max-complexity = 10
+
+[lint.isort]
+lines-after-imports = 2

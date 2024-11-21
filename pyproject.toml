@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pytest-vulture"
+version = "2.2.0"
+description = "A pytest plugin to checks dead code with vulture"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Abadie Moran", email = "moran.abadie@gatewatcher.com"},
+]
+maintainers = [
+    {name = "Abadie Moran", email = "moran.abadie@gatewatcher.com"},
+]
+classifiers = [
+    "Framework :: Pytest",
+]
+dependencies = [
+    "vulture>=2.0,<3.0",
+    "pytest>=7.0.0",
+]
+
+[project.entry-points.pytest11]
+vulture = "pytest_vulture.plugin"
+
+[tool.mypy]
+warn_unused_ignores = true
+strict_optional = true
+incremental = true
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_no_return = true
+warn_return_any = true
+no_implicit_optional = true

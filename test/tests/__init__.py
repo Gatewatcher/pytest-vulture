@@ -1,1 +1,1 @@
-"""All the tests"""
+"""All the tests."""

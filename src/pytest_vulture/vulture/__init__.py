@@ -1,1 +1,1 @@
-"""Manages vulture"""
+"""Manages vulture."""

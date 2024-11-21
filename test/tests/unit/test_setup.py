@@ -1,5 +1,5 @@
 """Tests the setup parser."""
-# pylint: disable=protected-access
+
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -28,6 +28,7 @@ test_api = "test_tools.cli.test:main"
 dependencies = {file = ["requirements/main.txt"]}
 """
 
+
 def test_py_project(tmp_path):
     setup = tmp_path / "pyproject.toml"
     test_tools = tmp_path / "test_tools/cli"
@@ -39,10 +40,19 @@ def test_py_project(tmp_path):
     mock.package_configuration.source_path = tmp_path
     setup = SetupManager(mock)
 
-    assert setup._entry_points == ['test_tools.cli.test:main']
-    assert setup.is_entry_point(
-        Item("test", "function", Path("toto.py"), 1, 1, "unused function 'main'", 50)
-    ) is False
-    assert setup.is_entry_point(
-        Item("test", "function", Path("test_tools/cli/test.py"), 1, 1, "unused function 'main'", 50)
-    ) is True
+    assert setup._entry_points == ["test_tools.cli.test:main"]
+    assert setup.is_entry_point(Item("test", "function", Path("toto.py"), 1, 1, "unused function 'main'", 50)) is False
+    assert (
+        setup.is_entry_point(
+            Item(
+                "test",
+                "function",
+                Path("test_tools/cli/test.py"),
+                1,
+                1,
+                "unused function 'main'",
+                50,
+            )
+        )
+        is True
+    )

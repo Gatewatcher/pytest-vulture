@@ -1,77 +1,123 @@
 pytest vulture
 --------------
 
-Run vulture (https://pypi.org/project/vulture/) with pytest to find dead code.
+This plugin enables you to run `vulture` (https://pypi.org/project/vulture/) alongside `pytest`,
+allowing for dead code detection during your testing process.
 
 Sample Usage
 ============
-.. code-block:: shell
 
-   py.test --vulture
+To integrate `vulture` with `pytest` and find dead code, use the following commands:
 
-would be the most simple usage and would run vulture for all error messages.
+1. **Basic Usage**
+   Run `vulture` with `pytest` to check for dead code:
 
-.. code-block:: shell
+   .. code-block:: shell
 
-   py.test --vulture --vulture-cfg-file=/test/vulture.ini
+      pytest --vulture
 
-This would use the vulture with the /test/vulture.ini config path
+2. **Custom Configuration**
+   Specify a custom configuration file path:
 
-Ignoring vulture messages in source code
-========================================
+   .. code-block:: shell
 
-- ignoring lines :
+      pytest --vulture --vulture-cfg-file=/path/to/vulture.ini
 
-.. code-block:: python
+   **Note:** By default, the tool looks for configuration files in the following order:
 
-    def test():
-        a = 2    # vulture: ignore
+   - ``pyproject.toml``
+   - ``tox.ini``
+   - ``vulture.ini``
 
-- ignoring methods :
+Ignoring Vulture Messages
+=========================
 
-.. code-block:: python
+You can ignore specific warnings from `vulture` directly in the source code. Here’s how:
 
-    def test():  # vulture: ignore
-        pass
+- **Ignore Specific Lines:**
 
-- ignoring classes :
+  .. code-block:: python
 
-.. code-block:: python
+      def test_function():
+          unused_variable = 42  # vulture: ignore
 
-    class Test:  # vulture: ignore
-        pass
+- **Ignore Entire Methods:**
+
+  .. code-block:: python
+
+      def ignored_function():  # vulture: ignore
+          pass
+
+- **Ignore Classes:**
+
+  .. code-block:: python
+
+      class IgnoredClass:  # vulture: ignore
+          pass
 
 
-Config file
-============
 
-The config file (the path can be defined by the --vulture-cfg-file option) can look like this ::
+Configuring with ``pyproject.toml``
+===================================
+
+Here’s an example of how to configure `vulture` using ``pyproject.toml``:
+
+.. code-block:: toml
+
+    [tool.vulture]
+    # Exclude specific paths (e.g., test directories)
+    exclude = [
+        "*/test/*",
+    ]
+
+    # Ignore specific files in the `pytest` output (but they are still checked by `vulture`)
+    ignore = [
+        "src/some_ignored_file.py",
+    ]
+
+    # Ignore specific function or variable names
+    ignore-names = [
+        "deprecated_function",
+    ]
+
+    # Ignore decorators
+    ignore-decorators = [
+        "@app.route",
+        "@celery.task",
+    ]
+
+    # Ignore specific types of messages (e.g., imports)
+    ignore-types = [
+        "import",
+    ]
+
+    # Define the source path
+    source-path = "src"
+
+Configuring with ``.ini`` Config Files
+======================================
+
+Here’s an example of how to configure `vulture` using an ``.ini`` file:
+
+.. code-block:: ini
 
     [vulture]
-    # completely exclude files for vulture
     exclude =
-        */test/* # We usualy exclude tests because tests can cover dead code
+        */test/*  # Usually exclude tests as they may cover dead code
 
-    # those file are ignored by pytest, but still computed by vulture
     ignore =
-        src/toto.py
+        src/some_ignored_file.py
 
-    # ignoring names in code
     ignore-names =
-        delimiter
+        deprecated_function
 
-    # ignoring decorators
     ignore-decorators =
-      @application.errorhandler
-      @application.route
-      @celery_app.task
-      @application.app.errorhandler
+        @app.route
+        @celery.task
 
-    # ignore vulture type of messages
     ignore-types =
         attribute
         variable
-
 
 
 Acknowledgements
@@ -92,6 +138,11 @@ If you encounter any problems, please file an issue along with a detailed descri
 
 Releases
 ========
+
+2.2.0
+~~~~~~
+
+- Add pyproject.toml support for parameters
 
 2.0.2
 ~~~~~~
