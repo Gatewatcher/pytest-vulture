@@ -1,7 +1,7 @@
-"""Manages the setup.py to get the entrypoint (and ignore then for vulture)"""
-# pylint: disable=eval-used
-import re
+"""Manages the setup.py to get the entrypoint (and ignore then for vulture)."""
 
+import re
+from ast import literal_eval
 from contextlib import suppress
 from pathlib import Path
 from typing import (
@@ -16,21 +16,29 @@ from pytest_vulture.conf.reader import IniReader
 
 
 class EntryPointFileError(VultureError):
-    _name = "an entry point file is missing in the setup.py file"
+    """Entrypoint file error."""
+
+    _name = "an entry point file is missing in the setup.py/pyproject.toml file"
 
 
 class EntryPointFunctionError(VultureError):
-    _name = "an entry point function is missing in the setup.py file"
+    """Entrypoint function error."""
+
+    _name = "an entry point function is missing in the setup.py/pyproject.toml file"
+
+
+_ENTRY_POINT_MSG = "\nYou can add the source_path parameter in the settings or disable with check-entry-points=0"
 
 
 class SetupManager:
-    """The setup.py parser"""
+    """The setup.py parser."""
+
     _entry_points: List[str]
     _config: IniReader
     _UNUSED_FUNCTION_MESSAGE = "unused function"
     _PY_PROJECT = "[project.scripts]"
 
-    def __init__(self, config: IniReader):
+    def __init__(self, config: IniReader) -> None:
         self._entry_points = []
         self._config = config
         try:
@@ -62,13 +70,13 @@ class SetupManager:
                 return True
         return False
 
-    def _python_path(self, vulture: Item):
+    def _python_path(self, vulture: Item) -> str:
         try:
             relative_path = vulture.filename.relative_to(self._get_dir_path().absolute())
         except ValueError:
             relative_path = vulture.filename
 
-        python_path = relative_path.as_posix().replace("/", ".").replace(".py", "")
+        python_path: str = relative_path.as_posix().replace("/", ".").replace(".py", "")
         dots_message = f"{self._UNUSED_FUNCTION_MESSAGE} '"
         find = re.findall(f"(?={dots_message}).*(?<=')", vulture.message)
         if find:
@@ -76,16 +84,18 @@ class SetupManager:
             python_path += ":" + function_name[:-1]
         return python_path
 
-    def _find_py_project_toml(self, content: str):
+    def _find_py_project_toml(self, content: str) -> str:
         """We do not want to add a toml dependency for now."""
-        entry_points  = content.split(self._PY_PROJECT, 1)[1].split("[", 1)[0].split("\n")
-        entry_points = [entry_point for entry_point in entry_points if  entry_point]
+        entry_points = content.split(self._PY_PROJECT, 1)[1].split("[", 1)[0].split("\n")
+        entry_points = [entry_point for entry_point in entry_points if entry_point]
+        source_path = self._config.package_configuration.source_path
+        root_paths = [("/", source_path.as_posix())] if source_path else []
         for entry_point in entry_points:
-            self.__parse_entry_point_line(entry_point.replace(" ", "").replace('"', ""), [])
+            self.__parse_entry_point_line(entry_point.replace(" ", "").replace('"', ""), root_paths)
         return ""
 
-    def _generate_entry_points(self, content: str):
-        """Parse the setup.pu file to get the entry points"""
+    def _generate_entry_points(self, content: str) -> None:
+        """Parse the setup.pu file to get the entry points."""
         if self._PY_PROJECT in content:
             self._find_py_project_toml(content)
             return
@@ -94,28 +104,23 @@ class SetupManager:
         find = re.findall("(?=entry_points={).*(?<=})", content.replace("\n", ""))
         if find:
             element = find[0]
-            element = element[:element.find("}") + 1]
+            element = element[: element.find("}") + 1]
             with suppress(SyntaxError):
-                entry_points = eval(element.replace("entry_points=", ""))
+                entry_points = literal_eval(element.replace("entry_points=", ""))
         for values in entry_points.values():
             for equality in values:
                 self.__parse_entry_point_line(equality, root_paths)
 
-    def __parse_entry_point_line(self, equality: str, root_paths: List[Tuple[str, str]]):
-        """Parse an entry point value to get the entry point path"""
+    def __parse_entry_point_line(self, equality: str, root_paths: List[Tuple[str, str]]) -> None:
+        """Parse an entry point value to get the entry point path."""
         equality_split = equality.split("=")
-        if len(equality_split) != 2:
-            value = equality
-        else:
-            value = equality_split[1]
+        value = equality if len(equality_split) != 2 else equality_split[1]  # noqa: PLR2004
         if not root_paths:
             self._entry_points.append(value)
         else:
             for target, destination in root_paths:
-                if len(value) > len(target) and value[:len(target)] == target:
-                    self._entry_points.append(
-                        destination + "." + value[len(target):]
-                    )
+                if len(value) > len(target) and value[: len(target)] == target:
+                    self._entry_points.append(destination + "." + value[len(target) :])
                 else:  # pragma: no cover
                     self._entry_points.append(value)
         self.__check_entry_points()
@@ -125,8 +130,8 @@ class SetupManager:
         dir_path = self._config.package_configuration.setup_path.absolute().parent
         return dir_path / source_path
 
-    def __check_entry_points(self):
-        """Checks if the entry points exists"""
+    def __check_entry_points(self) -> None:
+        """Check if the entry points exists."""
         if not self._config.package_configuration.check_entry_points:
             return
         for entry_points in self._entry_points:
@@ -143,27 +148,23 @@ class SetupManager:
             else:
                 path = (dir_path / (str(new_path) + ".py")).absolute()
             if not path.exists():
-                raise EntryPointFileError(
-                    message=f"{path.as_posix()} can not be found."
-                )
+                raise EntryPointFileError(message=f"{path.as_posix()} can not be found. {_ENTRY_POINT_MSG}")
             with path.open() as file:
                 content = file.read()
                 if f"def{function_name}(" not in content.replace(" ", ""):
-                    raise EntryPointFunctionError(
-                        message=f"{entry_points} can not be found."
-                    )
+                    raise EntryPointFunctionError(message=f"{entry_points} can not be found. {_ENTRY_POINT_MSG}")
 
     @staticmethod
     def __generate_root_paths(content: str) -> List[Tuple[str, str]]:
-        """Parse the setup.py to get the source root paths"""
+        """Parse the setup.py to get the source root paths."""
         root_paths: List[Tuple[str, str]] = []
         package_dir = {}
         find = re.findall("(?=package_dir={).*(?<=})", content.replace("\n", ""))
         if find:
             element = find[0]
-            element = element[:element.find("}") + 1]
+            element = element[: element.find("}") + 1]
             with suppress(SyntaxError):
-                package_dir = eval(element.replace("package_dir=", ""))
+                package_dir = literal_eval(element.replace("package_dir=", ""))
         for key, value in package_dir.items():
             root_paths.append((key, value))
         return root_paths

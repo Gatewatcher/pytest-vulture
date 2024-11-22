@@ -1,0 +1,38 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+]
+
+[project]
+name = "test"
+version = "3"
+requires-python = ">=3.9"
+dynamic = [
+    "dependencies",
+]
+[project.scripts]
+a-b = "c.d.e:f"
+g-h = "i.cli.j:k"
+
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements/main-no-hash.txt"] }
+
+[tool.vulture]
+exclude = [
+    "*/test/*",
+]
+ignore = [
+    "src/some_code/*",
+]
+ignore-names = [
+    "delimiter",
+]
+ignore-decorators = [
+    "@override",
+]
+ignore-types = [
+    "import"
+]
+source-path = "src"
