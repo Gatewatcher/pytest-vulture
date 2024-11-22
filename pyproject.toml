@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pytest-vulture"
-version = "2.2.0"
+version = "2.2.1"
 description = "A pytest plugin to checks dead code with vulture"
 readme = "README.rst"
 requires-python = ">=3.7"
 license = {text = "MIT"}
+keywords = ["pytest", "vulture", "dead code", "testing", "code analysis"]
 authors = [
     {name = "Abadie Moran", email = "moran.abadie@gatewatcher.com"},
 ]
@@ -17,11 +18,29 @@ maintainers = [
 ]
 classifiers = [
     "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Testing",
 ]
 dependencies = [
     "vulture>=2.0,<3.0",
     "pytest>=7.0.0",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/Gatewatcher/pytest-vulture/"
+"Bug Reports" = "https://github.com/Gatewatcher/pytest-vulture/issues"
+"Source" = "https://github.com/Gatewatcher/pytest-vulture/"
 
 [project.entry-points.pytest11]
 vulture = "pytest_vulture.plugin"
