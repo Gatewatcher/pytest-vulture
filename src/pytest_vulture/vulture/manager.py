@@ -35,9 +35,10 @@ class VultureManager:
         """Call vulture on a folder
         Example::
             >>> import py
+            >>> Path("/tmp/test-path").mkdir(exist_ok=True)  # add some code
             >>> config = IniReader(path_ini=Path("vulture.ini"), is_pyproject=False)
             >>> config.read_ini()
-            >>> manager = VultureManager(Path("/tmp"), config)
+            >>> manager = VultureManager(Path("/tmp/test-path"), config)
             >>> manager.call()
         """
         vulture_configuration = self._config.vulture_configuration
