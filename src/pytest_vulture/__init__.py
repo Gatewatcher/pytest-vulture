@@ -3,7 +3,7 @@
 __all__ = ["VultureError"]
 
 
-class VultureError(Exception):
+class VultureError(Exception):  # pragma: no cover
     """Any pytest vulture exception."""
 
     __message: str

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pytest-vulture"
-version = "2.2.1"
+version = "2.2.2"
 description = "A pytest plugin to checks dead code with vulture"
 readme = "README.rst"
 requires-python = ">=3.7"

@@ -1,6 +1,7 @@
 """Manages the setup.py to get the entrypoint (and ignore then for vulture)."""
 
 import re
+import warnings
 from ast import literal_eval
 from contextlib import suppress
 from pathlib import Path
@@ -11,20 +12,7 @@ from typing import (
 
 from vulture.core import Item
 
-from pytest_vulture import VultureError
 from pytest_vulture.conf.reader import IniReader
-
-
-class EntryPointFileError(VultureError):
-    """Entrypoint file error."""
-
-    _name = "an entry point file is missing in the setup.py/pyproject.toml file"
-
-
-class EntryPointFunctionError(VultureError):
-    """Entrypoint function error."""
-
-    _name = "an entry point function is missing in the setup.py/pyproject.toml file"
 
 
 _ENTRY_POINT_MSG = "\nYou can add the source_path parameter in the settings or disable with check-entry-points=0"
@@ -148,11 +136,14 @@ class SetupManager:
             else:
                 path = (dir_path / (str(new_path) + ".py")).absolute()
             if not path.exists():
-                raise EntryPointFileError(message=f"{path.as_posix()} can not be found. {_ENTRY_POINT_MSG}")
+                msg = f"{path.as_posix()} can not be found. {_ENTRY_POINT_MSG}"
+                warnings.warn(UserWarning(msg), stacklevel=2)
+                continue
             with path.open() as file:
                 content = file.read()
                 if f"def{function_name}(" not in content.replace(" ", ""):
-                    raise EntryPointFunctionError(message=f"{entry_points} can not be found. {_ENTRY_POINT_MSG}")
+                    msg = f"{entry_points} can not be found. {_ENTRY_POINT_MSG}"
+                    warnings.warn(UserWarning(msg), stacklevel=2)
 
     @staticmethod
     def __generate_root_paths(content: str) -> List[Tuple[str, str]]:

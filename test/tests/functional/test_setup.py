@@ -1,5 +1,6 @@
 """tests the setup parser system to find entry points."""
 
+import warnings
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -7,8 +8,6 @@ import pytest
 from vulture.core import Item
 
 from pytest_vulture.setup_manager import (
-    EntryPointFileError,
-    EntryPointFunctionError,
     SetupManager,
 )
 
@@ -68,18 +67,26 @@ def test_is_entry_point(
 
 
 @pytest.mark.parametrize(
-    ("path", "error"),
+    "path",
     [
-        ("setup_file_not_found", EntryPointFileError),
-        ("setup_entry_p_not_found", EntryPointFunctionError),
+        "setup_file_not_found",
+        "setup_entry_p_not_found",
     ],
 )
-def test_errors(examples_path, path, error):
+def test_errors(examples_path, path, monkeypatch):
+    warn = Mock()
+    monkeypatch.setattr(
+        warnings,
+        "warn",
+        warn,
+    )
     conf = Mock()
     conf.package_configuration.check_entry_points = True
     not_found_path = examples_path / "setups" / path
     conf.package_configuration.source_path = Path()
     conf.package_configuration.setup_path = not_found_path
+    assert warn.called is False
 
-    with pytest.raises(error):
-        SetupManager(conf)
+    SetupManager(conf)
+
+    assert warn.called is True

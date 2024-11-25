@@ -52,7 +52,7 @@ class PackageConfiguration(Configuration):
 
         str_source = parameters.get("source-path")
         self._source_path = Path(str_source) if str_source else Path()
-        self._check_entry_points = data.get("check-entry-points", True)
+        self._check_entry_points = bool(parameters.get("check-entry-points", True))
 
     def read_ini(self, config: ConfigParser) -> None:
         """Read the ini file."""
